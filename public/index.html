@@ -439,91 +439,207 @@
       to { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
 
-    .pass-3d-wrap {
-      width: 100%;
-      height: 420px;
-      border-radius: 24px;
-      overflow: hidden;
-      background: rgba(0,0,0,0.35);
+    .pass-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .pass-card-wrap {
       position: relative;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-    }
-    .pass-3d-wrap canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-    }
-    .success-immersive {
+      z-index: 1;
       width: 100%;
+      animation: fadeUp 0.5s ease;
     }
-    .success-immersive .success-hdr {
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pass-card-wrap .p-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 12px;
+      margin-bottom: 14px;
     }
-    .success-immersive .success-hdr h2 {
-      font-size: 22px;
+    .pass-card-wrap .p-header h2 {
+      font-size: 20px;
       font-weight: 700;
       color: #fff;
     }
-    .success-immersive .success-hdr .visitor-id {
-      font-size: 12px;
+    .pass-card-wrap .p-header .p-id {
+      font-size: 11px;
       color: rgba(255,255,255,0.4);
       font-family: monospace;
       background: rgba(255,255,255,0.06);
-      padding: 6px 14px;
-      border-radius: 20px;
+      padding: 5px 12px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.08);
     }
-    .pass-actions {
+
+    .qr-glow-box {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .qr-glow-box::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #6366f1, #8b5cf6);
+      background-size: 300% 300%;
+      z-index: -1;
+      animation: borderGlow 3s ease infinite;
+      opacity: 0.4;
+    }
+    @keyframes borderGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .qr-glow-box img {
+      max-width: 200px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+    }
+    .qr-scan-line {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #818cf8, transparent);
+      animation: scanLine 2.5s ease-in-out infinite;
+      opacity: 0.6;
+    }
+    @keyframes scanLine {
+      0% { top: 28px; opacity: 0; }
+      20% { opacity: 0.6; }
+      80% { opacity: 0.6; }
+      100% { top: calc(100% - 28px); opacity: 0; }
+    }
+
+    .p-details {
+      margin-top: 14px;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .p-details .p-photo {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .p-details .p-photo-initial {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .p-details .p-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .p-details .p-info .p-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+    .p-details .p-info .p-company {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+    .p-details .p-info .p-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+    }
+    .p-details .p-info .p-meta span {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+    }
+    .p-details .p-info .p-meta span strong {
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+    }
+
+    .p-actions {
       display: flex;
       gap: 8px;
-      margin-top: 16px;
+      margin-top: 14px;
       flex-wrap: wrap;
-      justify-content: center;
     }
-    .pass-actions .btn-act {
-      padding: 10px 18px;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.06);
+    .p-actions .p-btn {
+      flex: 1;
+      min-width: calc(50% - 4px);
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: #fff;
       font-size: 13px;
       font-weight: 500;
       font-family: inherit;
       cursor: pointer;
       transition: all 0.2s;
-      min-width: 100px;
       text-align: center;
       text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .pass-actions .btn-act:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.2);
-      transform: translateY(-1px);
+    .p-actions .p-btn:active {
+      transform: scale(0.96);
+      background: rgba(255,255,255,0.1);
     }
-    .pass-actions .btn-act.primary {
-      background: rgba(59,130,246,0.25);
-      border-color: rgba(59,130,246,0.3);
+    .p-actions .p-btn.dl {
+      background: rgba(59,130,246,0.2);
+      border-color: rgba(59,130,246,0.25);
     }
-    .pass-actions .btn-act.primary:hover {
-      background: rgba(59,130,246,0.35);
+    .p-actions .p-btn.print {
+      background: rgba(16,185,129,0.2);
+      border-color: rgba(16,185,129,0.25);
     }
-    .pass-actions .btn-act.success {
-      background: rgba(16,185,129,0.25);
-      border-color: rgba(16,185,129,0.3);
-    }
-    .pass-actions .btn-act.success:hover {
-      background: rgba(16,185,129,0.35);
+    .p-actions .p-btn.pass {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.25);
     }
 
     @media (max-width: 480px) {
-      .pass-3d-wrap { height: 340px; }
-      .pass-actions .btn-act { font-size: 12px; padding: 8px 14px; min-width: 80px; }
+      .qr-glow-box img { max-width: 160px; }
+      .p-details { padding: 14px; }
+      .p-details .p-photo, .p-details .p-photo-initial { width: 50px; height: 50px; font-size: 20px; }
+      .p-details .p-info .p-name { font-size: 16px; }
+      .p-actions .p-btn { font-size: 12px; padding: 11px; }
     }
 
     .footer-text {
@@ -644,30 +760,41 @@
       </form>
     </div>
 
-    <div id="successCard" style="display:none" class="success-immersive">
-      <div class="success-hdr">
-        <h2>Registered! &#10003;</h2>
-        <span class="visitor-id" id="successVisitorId"></span>
-      </div>
+    <div id="successCard" style="display:none">
+      <div class="pass-card-wrap">
+        <div class="p-header">
+          <h2>&#10003; Registered</h2>
+          <span class="p-id" id="successVisitorId"></span>
+        </div>
 
-      <div class="pass-3d-wrap" id="pass3dContainer">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);font-size:14px;gap:8px;flex-direction:column">
-          <div class="spinner" style="width:24px;height:24px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;"></div>
-          <span style="margin-top:8px">Loading your pass...</span>
+        <div class="qr-glow-box" id="qrBox">
+          <div class="qr-scan-line"></div>
+          <img id="qrCodeImg" alt="QR Code">
+        </div>
+        <img id="qrCodeImgHidden" alt="" style="display:none">
+
+        <div class="p-details" id="passDetails">
+          <div id="passPhotoWrap"></div>
+          <div class="p-info">
+            <div class="p-name" id="passName"></div>
+            <div class="p-company" id="passCompany"></div>
+            <div class="p-meta">
+              <span>Meeting <strong id="passMeeting">-</strong></span>
+              <span>Date <strong id="passDate">-</strong></span>
+              <span>Time <strong id="passTime">-</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-actions">
+          <button class="p-btn dl" onclick="downloadQR()">Download QR</button>
+          <button class="p-btn print" onclick="printQR()">Print QR</button>
+          <button class="p-btn pass" onclick="downloadPass()">Get Pass</button>
+          <button class="p-btn" onclick="registerAnother()">New Visitor</button>
         </div>
       </div>
 
-      <div class="qr-box" style="display:none;margin-top:12px;padding:12px;text-align:center" id="qrFallbackBox">
-        <img id="qrCodeImg" alt="QR Code" style="max-width:140px">
-      </div>
-      <img id="qrCodeImgHidden" alt="" style="display:none">
-
-      <div class="pass-actions">
-        <button class="btn-act primary" onclick="downloadQR()">Download QR</button>
-        <button class="btn-act success" onclick="downloadPass()">Get Pass</button>
-        <button class="btn-act" onclick="printQR()">Print QR</button>
-        <button class="btn-act" onclick="registerAnother()">New Visitor</button>
-      </div>
+      <canvas id="passParticles" class="pass-canvas"></canvas>
     </div>
 
     <div class="footer-text">VISITMANAGER &#8226; SECURE VISITOR SYSTEM</div>
@@ -699,7 +826,7 @@
 
     window.addEventListener('beforeunload', () => {
       if (cleanup) cleanup();
-      if (window._pass3dCleanup) window._pass3dCleanup();
+      stopPassParticles();
     });
   </script>
 
@@ -757,34 +884,21 @@
           window.lastQRData = data;
           showToast('Visitor registered successfully!', 'success');
 
-          window._pass3dCancel = false;
-          if (window._pass3dCleanup) { window._pass3dCleanup(); window._pass3dCleanup = null; }
-          const passContainer = document.getElementById('pass3dContainer');
-          passContainer.innerHTML = '';
-          import('/js/pass3d.js').then(mod => {
-            if (window._pass3dCancel) return;
-            const photoUrl = data.visitor.photo ? '/uploads/' + data.visitor.photo + '?t=' + Date.now() : null;
-            mod.createPass3D(passContainer, {
-              fullName: data.visitor.fullName || 'Visitor',
-              visitorId: data.visitor.visitorId || '',
-              company: data.visitor.company || '',
-              personToMeet: data.visitor.personToMeet || '',
-              entryDate: data.visitor.entryDate || '',
-              entryTime: data.visitor.entryTime || '',
-              phone: data.visitor.phone || '',
-              purpose: data.visitor.purpose || '',
-              photoUrl: photoUrl,
-              qrDataUrl: data.qrCodeUrl + '?t=' + Date.now(),
-            }).then(handle => {
-              window._pass3dCleanup = handle.cleanup;
-            }).catch(e => {
-              console.error('Pass3D error:', e);
-              passContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);font-size:13px">Interactive pass unavailable</div>';
-              document.getElementById('qrFallbackBox').style.display = 'block';
-            });
-          }).catch(e => {
-            console.error('Pass3D import error:', e);
-          });
+          document.getElementById('passName').textContent = data.visitor.fullName || 'Visitor';
+          document.getElementById('passCompany').textContent = data.visitor.company || '';
+          document.getElementById('passMeeting').textContent = data.visitor.personToMeet || '-';
+          document.getElementById('passDate').textContent = data.visitor.entryDate || '-';
+          document.getElementById('passTime').textContent = data.visitor.entryTime || '-';
+
+          const pw = document.getElementById('passPhotoWrap');
+          if (data.visitor.photo) {
+            pw.innerHTML = '<img class="p-photo" src="/uploads/' + data.visitor.photo + '?t=' + Date.now() + '" alt="">';
+          } else {
+            const init = (data.visitor.fullName || '?').charAt(0).toUpperCase();
+            pw.innerHTML = '<div class="p-photo-initial">' + init + '</div>';
+          }
+
+          startPassParticles();
         } catch (err) {
           showToast('Error: ' + err.message, 'error');
           btn.disabled = false;
@@ -834,13 +948,54 @@
       win.document.close();
     }
 
+    let _particleAnimId = null;
+
+    function startPassParticles() {
+      const canvas = document.getElementById('passParticles');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+      window.addEventListener('resize', resize);
+      const pts = [];
+      for (let i = 0; i < 50; i++) {
+        pts.push({
+          x: Math.random() * w, y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.4, vy: -Math.random() * 0.3 - 0.1,
+          r: Math.random() * 2 + 1, o: Math.random() * 0.3 + 0.1,
+        });
+      }
+      function frame() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of pts) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+          if (p.x < -10) p.x = w + 10;
+          if (p.x > w + 10) p.x = -10;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(129,140,248,' + p.o + ')';
+          ctx.fill();
+        }
+        _particleAnimId = requestAnimationFrame(frame);
+      }
+      frame();
+    }
+
+    function stopPassParticles() {
+      if (_particleAnimId) { cancelAnimationFrame(_particleAnimId); _particleAnimId = null; }
+      const canvas = document.getElementById('passParticles');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
     function registerAnother() {
-      window._pass3dCancel = true;
-      if (window._pass3dCleanup) { window._pass3dCleanup(); window._pass3dCleanup = null; }
+      stopPassParticles();
       document.getElementById('formCard').style.display = 'block';
       document.getElementById('successCard').style.display = 'none';
-      document.getElementById('pass3dContainer').innerHTML = '';
-      document.getElementById('qrFallbackBox').style.display = 'none';
       resetForm();
       document.getElementById('submitBtn').disabled = false;
       const today = new Date().toISOString().split('T')[0];
