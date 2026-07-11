@@ -585,7 +585,10 @@
             Loading pass...
           </div>
         </div>
-        <img id="qrCodeImg" alt="" style="display:none">
+        <div class="qr-box" style="display:none;margin-top:8px;padding:10px" id="qrFallbackBox">
+          <img id="qrCodeImg" alt="QR Code" style="max-width:140px">
+        </div>
+        <img id="qrCodeImgHidden" alt="" style="display:none">
 
         <div class="qr-actions">
           <button class="btn-action primary" onclick="downloadQR()">Download QR</button>
@@ -679,7 +682,9 @@
           document.getElementById('formCard').style.display = 'none';
           document.getElementById('successCard').style.display = 'block';
           document.getElementById('successVisitorId').textContent = data.visitor.visitorId;
-          document.getElementById('qrCodeImg').src = data.qrCodeUrl + '?t=' + Date.now();
+          const qrUrl = data.qrCodeUrl + '?t=' + Date.now();
+          document.getElementById('qrCodeImg').src = qrUrl;
+          document.getElementById('qrCodeImgHidden').src = qrUrl;
           window.lastQRData = data;
           showToast('Visitor registered successfully!', 'success');
 
@@ -705,7 +710,8 @@
               window._pass3dCleanup = handle.cleanup;
             }).catch(e => {
               console.error('Pass3D error:', e);
-              passContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);font-size:13px">Pass unavailable</div>';
+              passContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);font-size:13px">Interactive pass unavailable</div>';
+              document.getElementById('qrFallbackBox').style.display = 'block';
             });
           }).catch(e => {
             console.error('Pass3D import error:', e);
@@ -736,7 +742,7 @@
       if (window.lastQRData) {
         const link = document.createElement('a');
         link.download = window.lastQRData.visitor.visitorId + '-qr.png';
-        link.href = document.getElementById('qrCodeImg').src;
+        link.href = document.getElementById('qrCodeImgHidden').src || document.getElementById('qrCodeImg').src;
         link.click();
         showToast('QR code downloaded', 'success');
       }
@@ -749,7 +755,7 @@
     }
 
     function printQR() {
-      const qrImg = document.getElementById('qrCodeImg').src;
+      const qrImg = document.getElementById('qrCodeImgHidden').src || document.getElementById('qrCodeImg').src;
       const win = window.open('', '_blank');
       win.document.write('<html><head><title>Print QR</title><style>body{text-align:center;padding:40px;font-family:Inter,sans-serif;background:#fff}img{max-width:300px}</style></head><body>');
       win.document.write('<h2>Visitor QR Code</h2>');
@@ -765,6 +771,7 @@
       document.getElementById('formCard').style.display = 'block';
       document.getElementById('successCard').style.display = 'none';
       document.getElementById('pass3dContainer').innerHTML = '';
+      document.getElementById('qrFallbackBox').style.display = 'none';
       resetForm();
       document.getElementById('submitBtn').disabled = false;
       const today = new Date().toISOString().split('T')[0];

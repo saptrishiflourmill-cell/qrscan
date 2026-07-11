@@ -7,16 +7,13 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     this.arcTo(x + w, y + h, x, y + h, r);
     this.arcTo(x, y + h, x, y, r);
     this.arcTo(x, y, x + w, y, r);
+    this.closePath();
     return this;
   };
 }
 
 export async function createPass3D(container, visitorData) {
   const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-
-  const { RenderPass } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/RenderPass.js');
-  const { UnrealBloomPass } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js');
-  const { EffectComposer } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js');
 
   const rect = container.getBoundingClientRect();
   const cw = rect.width || 300;
@@ -29,20 +26,13 @@ export async function createPass3D(container, visitorData) {
   const camera = new THREE.PerspectiveCamera(camFov, cw / ch, 0.1, 100);
   camera.position.set(0, 2.2, camDist);
 
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(cw, ch);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.appendChild(renderer.domElement);
-
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-
-  const bloom = new UnrealBloomPass(new THREE.Vector2(cw, ch), 0.2, 0.15, 0.05);
-  composer.addPass(bloom);
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0x444466, 1.5);
   scene.add(hemi);
@@ -103,21 +93,15 @@ export async function createPass3D(container, visitorData) {
     ctx.textAlign = 'left';
 
     const photoX = 28, photoY = 115, photoS = 80;
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 2;
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.beginPath();
     ctx.roundRect(photoX, photoY, photoS, photoS, 10);
     ctx.fill();
-    ctx.shadowColor = 'transparent';
     ctx.strokeStyle = 'rgba(99,102,241,0.2)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(photoX, photoY, photoS, photoS, 10);
     ctx.stroke();
-    ctx.restore();
 
     if (data.photoUrl) {
       const img = new Image();
@@ -181,11 +165,7 @@ export async function createPass3D(container, visitorData) {
       const qrImg = new Image();
       qrImg.crossOrigin = 'anonymous';
       qrImg.onload = () => {
-        ctx.save();
-        ctx.shadowColor = 'rgba(99,102,241,0.25)';
-        ctx.shadowBlur = 15;
         ctx.drawImage(qrImg, W - 115, H - 115, 80, 80);
-        ctx.restore();
         updateTex();
       };
       qrImg.onerror = () => {
@@ -208,24 +188,21 @@ export async function createPass3D(container, visitorData) {
 
   let cardTex = new THREE.CanvasTexture(cardCanvas);
   cardTex.colorSpace = THREE.SRGBColorSpace;
-  cardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  cardTex.anisotropy = 4;
 
   function updateTex() { cardTex.needsUpdate = true; }
 
-  // --- Card (box with physical depth) ---
   const cardW = 3.2, cardH = 2.0, cardD = 0.12;
 
-  const materials = [
-    new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.1, color: 0x0d0a2e }),
-    new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.1, color: 0x0d0a2e }),
-    new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.1, color: 0x0a0820 }),
-    new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.1, color: 0x0a0820 }),
-    new THREE.MeshPhysicalMaterial({ map: cardTex, roughness: 0.25, metalness: 0.4, clearcoat: 1.0, clearcoatRoughness: 0.1 }),
-    new THREE.MeshPhysicalMaterial({ roughness: 0.4, metalness: 0.3, clearcoat: 0.5, color: 0x1a1040 }),
-  ];
+  const faceMat = new THREE.MeshPhysicalMaterial({
+    map: cardTex, roughness: 0.25, metalness: 0.4, clearcoat: 1.0, clearcoatRoughness: 0.1,
+  });
+  const edgeMat = new THREE.MeshPhysicalMaterial({
+    roughness: 0.3, metalness: 0.5, clearcoat: 0.8, color: 0x0d0a2e,
+  });
 
   const cardGeo = new THREE.BoxGeometry(cardW, cardH, cardD);
-  const card = new THREE.Mesh(cardGeo, materials);
+  const card = new THREE.Mesh(cardGeo, [edgeMat, edgeMat, edgeMat, edgeMat, faceMat, edgeMat]);
   card.castShadow = true;
   card.receiveShadow = true;
   scene.add(card);
@@ -238,7 +215,7 @@ export async function createPass3D(container, visitorData) {
   const glow = new THREE.Mesh(glowGeo, glowMat);
   scene.add(glow);
 
-  // --- Lanyard band (thick tube) ---
+  // --- Lanyard band ---
   const lanyardMat = new THREE.MeshPhysicalMaterial({
     color: 0x6366f1, metalness: 0.1, roughness: 0.6, emissive: 0x4444ff, emissiveIntensity: 0.08,
   });
@@ -272,7 +249,7 @@ export async function createPass3D(container, visitorData) {
     scene.add(lanyardMesh);
   }
 
-  // --- Hang point marker (tiny sphere) ---
+  // --- Hang point marker ---
   const dotGeo = new THREE.SphereGeometry(0.04, 8, 8);
   const dotMat = new THREE.MeshBasicMaterial({ color: 0x818cf8 });
   const hangDot = new THREE.Mesh(dotGeo, dotMat);
@@ -344,11 +321,9 @@ export async function createPass3D(container, visitorData) {
   container.addEventListener('pointerup', onUp);
   container.addEventListener('pointercancel', onUp);
 
-  // Initial draw
   if (visitorData) drawCardFront(visitorData);
 
   let running = true;
-  let firstFrame = true;
 
   function animate(t) {
     if (!running) return;
@@ -394,12 +369,11 @@ export async function createPass3D(container, visitorData) {
     glow.material.opacity = 0.04 + Math.sin(t * 0.001) * 0.02;
 
     updateLanyard(card.position);
-    firstFrame = false;
 
     hangDot.position.set(0, 3.8, 0);
     particles.rotation.y = t * 0.00015;
 
-    composer.render();
+    renderer.render(scene, camera);
   }
 
   animate(0);
@@ -411,8 +385,6 @@ export async function createPass3D(container, visitorData) {
     camera.aspect = rw / rh;
     camera.updateProjectionMatrix();
     renderer.setSize(rw, rh);
-    composer.setSize(rw, rh);
-    bloom.resolution.set(rw, rh);
   };
   window.addEventListener('resize', resize);
 
@@ -423,7 +395,8 @@ export async function createPass3D(container, visitorData) {
       if (renderer.domElement.parentElement === container) container.removeChild(renderer.domElement);
       renderer.dispose();
       cardGeo.dispose();
-      materials.forEach(m => m.dispose());
+      faceMat.dispose();
+      edgeMat.dispose();
       glowGeo.dispose();
       glowMat.dispose();
       pGeo.dispose();
