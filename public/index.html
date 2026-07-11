@@ -285,8 +285,10 @@
     .photo-btn:hover { border-color: #6366f1; background: #eef2ff; color: #6366f1; }
     .photo-btn span { font-size: 18px; }
 
-    .photo-btn.add { border-style:solid;border-color:#6366f1;background:#6366f1;color:#fff; }
-    .photo-btn.add:hover { background:#4f46e5;border-color:#4f46e5; }
+    .photo-btn.camera { border-style:solid;border-color:#6366f1;background:#6366f1;color:#fff; }
+    .photo-btn.camera:hover { background:#4f46e5;border-color:#4f46e5; }
+    .photo-btn.gallery { border-style:solid;border-color:#e2e8f0;background:#fff;color:#475569; }
+    .photo-btn.gallery:hover { background:#f1f5f9;border-color:#cbd5e1; }
     .photo-btn.capture { border-style:solid;border-color:#6366f1;background:#6366f1;color:#fff; }
     .photo-btn.capture:hover { background:#4f46e5;border-color:#4f46e5; }
     .photo-btn.cancel { border-style:solid;border-color:#e2e8f0;background:#fff;color:#64748b; }
@@ -750,8 +752,11 @@
         <div class="form-group">
           <label class="photo-label">Photo</label>
           <div class="photo-upload-row" id="photoUploadRow">
-            <button type="button" class="photo-btn add" onclick="addPhoto()">
-              <span>&#128247;</span> Add Photo
+            <button type="button" class="photo-btn camera" onclick="openCamera()">
+              <span>&#128247;</span> Camera
+            </button>
+            <button type="button" class="photo-btn gallery" onclick="openGallery()">
+              <span>&#128206;</span> Gallery
             </button>
             <input type="file" id="photo" name="photo" accept="image/*" onchange="previewPhoto(event)" style="display:none">
           </div>
@@ -997,7 +1002,7 @@
     }
 
     let cameraStream = null;
-    async function addPhoto() {
+    async function openCamera() {
       try {
         const constraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } };
         cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -1007,21 +1012,21 @@
         document.getElementById('cameraContainer').style.display = 'block';
         document.getElementById('photoUploadRow').style.display = 'none';
       } catch (err) {
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          document.getElementById('photo').click();
-        } else {
-          try {
-            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            const video = document.getElementById('cameraFeed');
-            video.srcObject = cameraStream;
-            await video.play();
-            document.getElementById('cameraContainer').style.display = 'block';
-            document.getElementById('photoUploadRow').style.display = 'none';
-          } catch (e2) {
-            document.getElementById('photo').click();
-          }
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const video = document.getElementById('cameraFeed');
+          video.srcObject = cameraStream;
+          await video.play();
+          document.getElementById('cameraContainer').style.display = 'block';
+          document.getElementById('photoUploadRow').style.display = 'none';
+        } catch (e2) {
+          showToast('Camera not available. Use Gallery instead.', 'error');
         }
       }
+    }
+
+    function openGallery() {
+      document.getElementById('photo').click();
     }
 
     function takeSnapshot() {
