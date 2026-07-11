@@ -47,12 +47,12 @@ export async function createPass3D(container, visitorData) {
 
   // --- Draw card face ---
   const cardCanvas = document.createElement('canvas');
-  cardCanvas.width = 800;
-  cardCanvas.height = 500;
+  cardCanvas.width = 1000;
+  cardCanvas.height = 650;
   const ctx = cardCanvas.getContext('2d');
 
   function drawCardFront(data) {
-    const W = 800, H = 500;
+    const W = 1000, H = 650;
     ctx.clearRect(0, 0, W, H);
 
     const grad = ctx.createLinearGradient(0, 0, W, H);
@@ -61,47 +61,52 @@ export async function createPass3D(container, visitorData) {
     grad.addColorStop(1, '#0d0a2e');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.roundRect(6, 6, W - 12, H - 12, 18);
+    ctx.roundRect(8, 8, W - 16, H - 16, 20);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(99,102,241,0.35)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(99,102,241,0.4)';
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(6, 6, W - 12, H - 12, 18);
+    ctx.roundRect(8, 8, W - 16, H - 16, 20);
     ctx.stroke();
 
-    const barGrad = ctx.createLinearGradient(0, 0, W, 0);
-    barGrad.addColorStop(0, '#6366f1');
-    barGrad.addColorStop(0.3, '#8b5cf6');
-    barGrad.addColorStop(0.7, '#8b5cf6');
-    barGrad.addColorStop(1, '#6366f1');
-    ctx.fillStyle = barGrad;
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
     ctx.beginPath();
-    ctx.roundRect(20, 18, W - 40, 5, 2.5);
+    ctx.roundRect(20, 15, W - 40, 90, 14);
     ctx.fill();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px Inter, sans-serif';
-    ctx.fillText('VISITMANAGER', 30, 65);
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '11px Inter, sans-serif';
-    ctx.fillText('Visitor Pass', 30, 85);
+    ctx.font = 'bold 32px Inter, sans-serif';
+    ctx.fillText('VISITMANAGER', 36, 62);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '16px Inter, sans-serif';
+    ctx.fillText('Visitor Pass', 36, 88);
 
-    ctx.fillStyle = 'rgba(99,102,241,0.25)';
-    ctx.font = '10px monospace';
+    ctx.fillStyle = 'rgba(99,102,241,0.35)';
+    ctx.font = '14px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(data.visitorId || '', W - 30, 65);
+    ctx.fillText(data.visitorId || '', W - 36, 62);
     ctx.textAlign = 'left';
 
-    const photoX = 28, photoY = 115, photoS = 80;
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    const accentGrad = ctx.createLinearGradient(20, 105, W - 20, 105);
+    accentGrad.addColorStop(0, '#6366f1');
+    accentGrad.addColorStop(0.3, '#8b5cf6');
+    accentGrad.addColorStop(0.7, '#8b5cf6');
+    accentGrad.addColorStop(1, '#6366f1');
+    ctx.fillStyle = accentGrad;
     ctx.beginPath();
-    ctx.roundRect(photoX, photoY, photoS, photoS, 10);
+    ctx.roundRect(20, 105, W - 40, 4, 2);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(99,102,241,0.2)';
-    ctx.lineWidth = 1;
+
+    const photoX = 30, photoY = 130, photoS = 110;
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
     ctx.beginPath();
-    ctx.roundRect(photoX, photoY, photoS, photoS, 10);
+    ctx.roundRect(photoX, photoY, photoS, photoS, 14);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(99,102,241,0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(photoX, photoY, photoS, photoS, 14);
     ctx.stroke();
 
     if (data.photoUrl) {
@@ -110,7 +115,7 @@ export async function createPass3D(container, visitorData) {
       img.onload = () => {
         ctx.save();
         ctx.beginPath();
-        ctx.roundRect(photoX, photoY, photoS, photoS, 10);
+        ctx.roundRect(photoX, photoY, photoS, photoS, 14);
         ctx.clip();
         ctx.drawImage(img, photoX, photoY, photoS, photoS);
         ctx.restore();
@@ -118,8 +123,8 @@ export async function createPass3D(container, visitorData) {
       };
       img.src = data.photoUrl;
     } else {
-      ctx.fillStyle = 'rgba(99,102,241,0.35)';
-      ctx.font = 'bold 34px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(99,102,241,0.4)';
+      ctx.font = 'bold 48px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText((data.fullName || '?').charAt(0).toUpperCase(), photoX + photoS / 2, photoY + photoS / 2);
@@ -128,62 +133,71 @@ export async function createPass3D(container, visitorData) {
     }
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px Inter, sans-serif';
-    ctx.fillText(data.fullName || 'Visitor', 122, 148);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = '13px Inter, sans-serif';
-    ctx.fillText(data.company || '', 122, 172);
+    ctx.font = 'bold 30px Inter, sans-serif';
+    ctx.fillText(data.fullName || 'Visitor', 160, 170);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '18px Inter, sans-serif';
+    ctx.fillText(data.company || '', 160, 202);
     if (data.personToMeet) {
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.font = '12px Inter, sans-serif';
-      ctx.fillText('Meeting: ' + data.personToMeet, 122, 195);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '16px Inter, sans-serif';
+      ctx.fillText('Meeting: ' + data.personToMeet, 160, 228);
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    ctx.fillRect(20, 210, W - 40, 1);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(20, 258, W - 40, 2);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.beginPath();
+    ctx.roundRect(20, 275, W - 300, 130, 12);
+    ctx.fill();
 
     const fields = [
       ['Phone', data.phone || '', 'Date', data.entryDate || ''],
       ['Purpose', data.purpose || '', 'Time', data.entryTime || ''],
     ];
-    const colW2 = (W - 60) / 2;
-    let fy = 230;
+    const colW2 = (W - 340) / 2;
+    let fy = 295;
     for (const row of fields) {
       for (let fi = 0; fi < 2; fi++) {
-        const fx = 24 + fi * colW2;
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
-        ctx.font = '9px Inter, sans-serif';
-        ctx.fillText(row[fi * 2], fx, fy);
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.font = '13px Inter, sans-serif';
+        const fx = 32 + fi * colW2;
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.fillText(row[fi * 2].toUpperCase(), fx, fy);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Inter, sans-serif';
         const val = row[fi * 2 + 1];
-        ctx.fillText(val.length > 22 ? val.slice(0, 20) + '..' : val, fx, fy + 16);
+        ctx.fillText(val.length > 20 ? val.slice(0, 18) + '..' : val, fx, fy + 22);
       }
-      fy += 45;
+      fy += 55;
     }
 
     if (data.qrDataUrl) {
       const qrImg = new Image();
       qrImg.crossOrigin = 'anonymous';
       qrImg.onload = () => {
-        ctx.drawImage(qrImg, W - 175, H - 170, 130, 130);
+        ctx.save();
+        ctx.shadowColor = 'rgba(99,102,241,0.2)';
+        ctx.shadowBlur = 12;
+        ctx.drawImage(qrImg, W - 190, H - 190, 150, 150);
+        ctx.restore();
         updateTex();
       };
       qrImg.onerror = () => {
         ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.font = '9px monospace';
+        ctx.font = '12px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(data.visitorId || 'VISITOR', W - 110, H - 105);
+        ctx.fillText(data.visitorId || 'VISITOR', W - 115, H - 115);
         ctx.textAlign = 'left';
         updateTex();
       };
       qrImg.src = data.qrDataUrl;
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.font = '7px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.font = '10px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('SCAN FOR VERIFICATION', W / 2, H - 8);
+    ctx.fillText('SCAN FOR VERIFICATION', W / 2, H - 14);
     ctx.textAlign = 'left';
   }
 
@@ -193,7 +207,7 @@ export async function createPass3D(container, visitorData) {
 
   function updateTex() { cardTex.needsUpdate = true; }
 
-  const cardW = 3.2, cardH = 2.0, cardD = 0.12;
+  const cardW = 4.2, cardH = 2.7, cardD = 0.14;
 
   const faceMat = new THREE.MeshPhysicalMaterial({
     map: cardTex, roughness: 0.25, metalness: 0.4, clearcoat: 1.0, clearcoatRoughness: 0.1,
@@ -209,7 +223,7 @@ export async function createPass3D(container, visitorData) {
   scene.add(card);
 
   // --- Card glow ---
-  const glowGeo = new THREE.BoxGeometry(cardW + 0.15, cardH + 0.15, cardD + 0.02);
+  const glowGeo = new THREE.BoxGeometry(cardW + 0.2, cardH + 0.2, cardD + 0.02);
   const glowMat = new THREE.MeshBasicMaterial({
     color: 0x6366f1, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.BackSide,
   });
