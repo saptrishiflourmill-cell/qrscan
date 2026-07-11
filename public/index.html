@@ -537,11 +537,6 @@
       color: #fff;
     }
     .p-actions .p-btn.print:hover { background: #059669; }
-    .p-actions .p-btn.pass {
-      background: #f59e0b;
-      color: #fff;
-    }
-    .p-actions .p-btn.pass:hover { background: #d97706; }
     .p-actions .p-btn.again {
       background: #f1f5f9;
       color: #475569;
@@ -695,7 +690,7 @@
         <div class="p-actions">
           <button class="p-btn dl" onclick="downloadQR()">Download QR</button>
           <button class="p-btn print" onclick="printQR()">Print QR</button>
-          <button class="p-btn pass" onclick="downloadPass()">Get Pass</button>
+
           <button class="p-btn again" onclick="registerAnother()">New Visitor</button>
         </div>
       </div>
@@ -885,12 +880,6 @@
         link.href = document.getElementById('qrCodeImgHidden').src || document.getElementById('qrCodeImg').src;
         link.click();
         showToast('QR code downloaded', 'success');
-      }
-    }
-
-    function downloadPass() {
-      if (window.lastQRData) {
-        window.open('/pass.html?id=' + window.lastQRData.visitor.visitorId, '_blank');
       }
     }
 
