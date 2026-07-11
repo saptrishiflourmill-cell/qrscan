@@ -124,9 +124,43 @@
       position: relative;
     }
 
-    .form-group .floating-label {
+    .form-section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin: 16px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid #eef2ff;
+    }
+
+    .form-group { position: relative; margin-bottom: 14px; }
+
+    .input-icon {
       position: absolute;
       left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: #94a3b8;
+      pointer-events: none;
+      z-index: 1;
+      transition: all 0.2s ease;
+    }
+
+    .input-icon-textarea { top: 20px; transform: none; }
+
+    .form-group input:focus ~ .input-icon,
+    .form-group textarea:focus ~ .input-icon,
+    .form-group input:not(:placeholder-shown) ~ .input-icon,
+    .form-group textarea:not(:placeholder-shown) ~ .input-icon {
+      color: #6366f1;
+    }
+
+    .form-group .floating-label {
+      position: absolute;
+      left: 42px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 14px;
@@ -150,13 +184,14 @@
       color: #6366f1;
       background: #ffffff;
       border-radius: 4px;
+      left: 14px;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
       width: 100%;
-      padding: 14px 14px 12px;
+      padding: 14px 14px 12px 40px;
       background: #f8f9ff;
       border: 1.5px solid #e2e8f0;
       border-radius: 14px;
@@ -168,6 +203,8 @@
       -webkit-appearance: none;
       appearance: none;
     }
+
+    .form-group textarea { padding-left: 40px; }
 
     .form-group textarea {
       resize: vertical;
@@ -207,41 +244,87 @@
       transform: none;
       font-size: 11px;
       color: #6366f1;
+      left: 14px;
     }
 
-    .form-group input[type="file"] {
-      padding: 12px;
-      font-size: 13px;
-      color: #64748b;
+    .form-group input[type="date"] ~ .input-icon,
+    .form-group input[type="time"] ~ .input-icon {
+      top: 50%; transform: translateY(-50%);
     }
 
-    .form-group input[type="file"]::file-selector-button {
-      padding: 6px 14px;
-      border: none;
-      border-radius: 8px;
-      background: #6366f1;
-      color: #fff;
+    .photo-label {
+      display: block;
       font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    .photo-upload-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .photo-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 16px;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 14px;
+      background: #f8f9ff;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
       cursor: pointer;
-      margin-right: 10px;
-      transition: background 0.2s;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
-    .form-group input[type="file"]::file-selector-button:hover {
-      background: #4f46e5;
+    .photo-btn:hover { border-color: #6366f1; background: #eef2ff; color: #6366f1; }
+    .photo-btn span { font-size: 18px; }
+
+    .photo-btn.capture { border-style:solid;border-color:#6366f1;background:#6366f1;color:#fff; }
+    .photo-btn.capture:hover { background:#4f46e5;border-color:#4f46e5; }
+    .photo-btn.cancel { border-style:solid;border-color:#e2e8f0;background:#fff;color:#64748b; }
+    .photo-btn.cancel:hover { background:#f1f5f9;color:#475569; }
+
+    .photo-preview-wrap {
+      position: relative;
+      display: inline-block;
+      margin-top: 10px;
     }
 
     .photo-preview {
-      max-width: 120px;
-      max-height: 120px;
-      border-radius: 12px;
-      margin-top: 8px;
-      display: none;
+      max-width: 140px;
+      max-height: 140px;
+      border-radius: 14px;
       object-fit: cover;
-      border: 1px solid #e2e8f0;
+      border: 2px solid #e2e8f0;
     }
 
-    .photo-preview.show { display: block; }
+    .photo-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: #ef4444;
+      color: #fff;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
 
     .btn-submit {
       width: 100%;
@@ -559,10 +642,16 @@
       .glass-card { padding: 18px; border-radius: 18px; }
       .form-row { grid-template-columns: 1fr; gap: 0; }
       .form-group { margin-bottom: 12px; }
-      .form-group input, .form-group textarea { padding: 13px 13px 11px; font-size: 16px; }
+      .form-group input, .form-group textarea { padding: 13px 13px 11px 38px; font-size: 16px; }
       .reg-header .logo-wrap { width: 60px; height: 60px; border-radius: 18px; }
       .reg-header .logo-wrap span { font-size: 28px; }
       .btn-submit { padding: 15px 20px; font-size: 15px; }
+      .photo-upload-row { flex-direction: column; }
+      .photo-btn { min-width: 100%; }
+      .form-section-label { font-size: 11px; margin: 12px 0 8px; }
+      .input-icon { left: 12px; font-size: 14px; }
+      .form-group .floating-label { left: 38px; font-size: 13px; }
+      .form-group .floating-label.active { left: 12px; font-size: 10px; }
     }
 
     @media (max-width: 360px) {
@@ -587,12 +676,15 @@
       <div class="card-subtitle">Fill in the details to generate a QR pass</div>
 
       <form id="visitorForm" enctype="multipart/form-data">
+        <div class="form-section-label">Personal Details</div>
         <div class="form-row">
           <div class="form-group">
+            <span class="input-icon">&#128100;</span>
             <input type="text" id="fullName" name="fullName" placeholder="Full Name" required>
             <label class="floating-label" for="fullName">Full Name</label>
           </div>
           <div class="form-group">
+            <span class="input-icon">&#128222;</span>
             <input type="tel" id="phone" name="phone" placeholder="Phone" required>
             <label class="floating-label" for="phone">Phone Number</label>
           </div>
@@ -600,26 +692,32 @@
 
         <div class="form-row">
           <div class="form-group">
+            <span class="input-icon">&#9993;</span>
             <input type="email" id="email" name="email" placeholder="Email">
             <label class="floating-label" for="email">Email (optional)</label>
           </div>
           <div class="form-group">
+            <span class="input-icon">&#127970;</span>
             <input type="text" id="company" name="company" placeholder="Company" required>
             <label class="floating-label" for="company">Company</label>
           </div>
         </div>
 
         <div class="form-group">
+          <span class="input-icon input-icon-textarea">&#128205;</span>
           <textarea id="address" name="address" placeholder="Address" required></textarea>
           <label class="floating-label" for="address">Address</label>
         </div>
 
+        <div class="form-section-label">Visit Details</div>
         <div class="form-row">
           <div class="form-group">
+            <span class="input-icon">&#128101;</span>
             <input type="text" id="personToMeet" name="personToMeet" placeholder="Person to Meet" required>
             <label class="floating-label" for="personToMeet">Person to Meet</label>
           </div>
           <div class="form-group">
+            <span class="input-icon">&#128200;</span>
             <input type="text" id="purpose" name="purpose" placeholder="Purpose" required>
             <label class="floating-label" for="purpose">Purpose of Visit</label>
           </div>
@@ -627,10 +725,12 @@
 
         <div class="form-row">
           <div class="form-group">
+            <span class="input-icon">&#128197;</span>
             <input type="date" id="entryDate" name="entryDate" required>
             <label class="floating-label" for="entryDate">Entry Date</label>
           </div>
           <div class="form-group">
+            <span class="input-icon">&#128340;</span>
             <input type="time" id="entryTime" name="entryTime" required>
             <label class="floating-label" for="entryTime">Entry Time</label>
           </div>
@@ -638,18 +738,40 @@
 
         <div class="form-row">
           <div class="form-group">
+            <span class="input-icon">&#128339;</span>
             <input type="time" id="exitTime" name="exitTime">
             <label class="floating-label" for="exitTime">Exit Time (optional)</label>
           </div>
           <div class="form-group">
+            <span class="input-icon">&#128663;</span>
             <input type="text" id="vehicleNumber" name="vehicleNumber" placeholder="Vehicle">
             <label class="floating-label" for="vehicleNumber">Vehicle Number</label>
           </div>
         </div>
 
         <div class="form-group">
-          <input type="file" id="photo" name="photo" accept="image/*" onchange="previewPhoto(event)">
-          <img id="photoPreview" class="photo-preview" alt="Preview">
+          <label class="photo-label">Photo</label>
+          <div class="photo-upload-row">
+            <button type="button" class="photo-btn camera" onclick="captureCamera()" title="Take Photo">
+              <span>&#128247;</span> Camera
+            </button>
+            <button type="button" class="photo-btn gallery" onclick="document.getElementById('photo').click()" title="Choose from Gallery">
+              <span>&#128206;</span> Gallery
+            </button>
+            <input type="file" id="photo" name="photo" accept="image/*" capture="environment" onchange="previewPhoto(event)" style="display:none">
+          </div>
+          <div class="photo-preview-wrap" id="photoPreviewWrap" style="display:none">
+            <img id="photoPreview" class="photo-preview" alt="Preview">
+            <button type="button" class="photo-remove" onclick="removePhoto()">&times;</button>
+          </div>
+          <div id="cameraContainer" style="display:none">
+            <video id="cameraFeed" playsinline style="width:100%;border-radius:12px;max-height:300px;object-fit:cover;background:#000"></video>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button type="button" class="photo-btn capture" id="captureBtn" onclick="takeSnapshot()"><span>&#128247;</span> Capture</button>
+              <button type="button" class="photo-btn cancel" onclick="stopCamera()"><span>&#10005;</span> Cancel</button>
+            </div>
+            <canvas id="cameraCanvas" style="display:none"></canvas>
+          </div>
         </div>
 
         <button type="submit" class="btn-submit" id="submitBtn">
@@ -867,10 +989,59 @@
         reader.onload = function(ev) {
           const preview = document.getElementById('photoPreview');
           preview.src = ev.target.result;
-          preview.classList.add('show');
+          document.getElementById('photoPreviewWrap').style.display = 'inline-block';
         };
         reader.readAsDataURL(file);
       }
+    }
+
+    function removePhoto() {
+      document.getElementById('photo').value = '';
+      document.getElementById('photoPreview').src = '';
+      document.getElementById('photoPreviewWrap').style.display = 'none';
+    }
+
+    let cameraStream = null;
+    async function captureCamera() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } });
+        const video = document.getElementById('cameraFeed');
+        video.srcObject = cameraStream;
+        document.getElementById('cameraContainer').style.display = 'block';
+        document.querySelector('.photo-upload-row').style.display = 'none';
+      } catch (err) {
+        showToast('Camera access denied or unavailable', 'error');
+      }
+    }
+
+    function takeSnapshot() {
+      const video = document.getElementById('cameraFeed');
+      const canvas = document.getElementById('cameraCanvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const preview = document.getElementById('photoPreview');
+      preview.src = dataUrl;
+      document.getElementById('photoPreviewWrap').style.display = 'inline-block';
+      document.getElementById('photo').value = '';
+      stopCamera();
+      fetch(dataUrl).then(r => r.blob()).then(blob => {
+        const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('photo').files = dt.files;
+      });
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      document.getElementById('cameraContainer').style.display = 'none';
+      document.querySelector('.photo-upload-row').style.display = 'flex';
     }
 
     function downloadQR() {

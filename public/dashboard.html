@@ -5,6 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Visitor Management System</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    @media (max-width: 768px) {
+      .stats-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px; }
+      .stat-card { padding:14px; }
+      .stat-card .stat-icon { width:36px;height:36px;font-size:18px; }
+      .stat-card h3 { font-size:20px; }
+      .stat-card p { font-size:12px; }
+      .visitor-cards { display:flex;flex-direction:column;gap:10px; }
+      .visitor-card { background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:6px 12px;align-items:center;box-shadow:var(--shadow); }
+      .visitor-card .vc-photo { grid-row:1/3;width:40px;height:40px; }
+      .visitor-card .vc-photo img,.visitor-card .vc-photo span { width:40px;height:40px;border-radius:50%;object-fit:cover;display:flex;align-items:center;justify-content:center;background:var(--bg);font-size:16px;color:var(--text-light); }
+      .visitor-card .vc-name { font-weight:600;font-size:14px;color:var(--text); }
+      .visitor-card .vc-meta { font-size:12px;color:var(--text-light); }
+      .visitor-card .vc-status { grid-column:3;grid-row:1; }
+      .visitor-card .vc-actions { grid-column:3;grid-row:2;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end; }
+      .visitor-card .vc-actions .btn { padding:4px 8px;font-size:11px; }
+      #visitorTable { display:none !important; }
+      .filters { flex-direction:column;align-items:stretch; }
+      .filters input { width:100%; }
+      .top-bar { flex-direction:column;align-items:stretch;gap:8px; }
+      .top-bar > div:first-child { justify-content:space-between; }
+    }
+    @media (min-width: 769px) {
+      .visitor-cards { display:none; }
+      .stats-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:24px; }
+    }
+  </style>
 </head>
 <body>
   <div class="layout">
@@ -34,11 +61,11 @@
         </div>
       </div>
 
-      <div class="cards" id="statsCards">
-        <div class="card"><div class="card-icon blue">&#128100;</div><h3 id="statTotal">0</h3><p>Total Visitors</p></div>
-        <div class="card"><div class="card-icon green">&#10003;</div><h3 id="statActive">0</h3><p>Active Visitors</p></div>
-        <div class="card"><div class="card-icon red">&#10007;</div><h3 id="statCheckedOut">0</h3><p>Checked Out</p></div>
-        <div class="card"><div class="card-icon yellow">&#128197;</div><h3 id="statToday">0</h3><p>Today's Visitors</p></div>
+      <div class="stats-grid" id="statsCards">
+        <div class="card stat-card"><div class="card-icon blue">&#128100;</div><h3 id="statTotal">0</h3><p>Total Visitors</p></div>
+        <div class="card stat-card"><div class="card-icon green">&#10003;</div><h3 id="statActive">0</h3><p>Active Visitors</p></div>
+        <div class="card stat-card"><div class="card-icon red">&#10007;</div><h3 id="statCheckedOut">0</h3><p>Checked Out</p></div>
+        <div class="card stat-card"><div class="card-icon yellow">&#128197;</div><h3 id="statToday">0</h3><p>Today's Visitors</p></div>
       </div>
 
       <div class="content-card">
@@ -49,25 +76,28 @@
             <input type="date" id="dateFilter" onchange="loadVisitors(1)">
           </div>
         </div>
-        <div class="card-body overflow-x">
+        <div class="card-body">
           <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading visitors...</p></div>
           <div id="emptyState" class="empty-state" style="display:none"><div class="empty-icon">&#128465;</div><h3>No visitors found</h3><p>Try adjusting your search or register a new visitor.</p></div>
-          <table id="visitorTable" style="display:none">
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Visitor ID</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Company</th>
-                <th>Person to Meet</th>
-                <th>Entry Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="visitorBody"></tbody>
-          </table>
+          <div class="overflow-x">
+            <table id="visitorTable" style="display:none">
+              <thead>
+                <tr>
+                  <th>Photo</th>
+                  <th>Visitor ID</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Company</th>
+                  <th>Person to Meet</th>
+                  <th>Entry Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="visitorBody"></tbody>
+            </table>
+          </div>
+          <div id="visitorCards" class="visitor-cards"></div>
         </div>
         <div class="pagination" id="pagination">
           <button id="prevPage" onclick="changePage(-1)" disabled>Previous</button>
@@ -285,6 +315,21 @@
       window.location.href = '/login.html';
     }
 
+    function toggleTableView() {
+      const table = document.getElementById('visitorTable');
+      const cards = document.getElementById('visitorCards');
+      if (table.style.display === 'none' && cards.style.display === 'none') return;
+      const isMobile = window.innerWidth <= 768;
+      table.style.display = isMobile ? 'none' : 'table';
+      cards.style.display = isMobile ? 'block' : 'none';
+    }
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(toggleTableView, 200);
+    });
+
     document.addEventListener('DOMContentLoaded', async function() {
       await checkAuth();
       loadStats();
@@ -319,6 +364,7 @@
 
       document.getElementById('loadingState').style.display = 'block';
       document.getElementById('visitorTable').style.display = 'none';
+      document.getElementById('visitorCards').style.display = 'none';
       document.getElementById('emptyState').style.display = 'none';
 
       try {
@@ -331,9 +377,12 @@
 
         if (data.visitors.length === 0) {
           document.getElementById('visitorTable').style.display = 'none';
+          document.getElementById('visitorCards').style.display = 'none';
           document.getElementById('emptyState').style.display = 'block';
         } else {
-          document.getElementById('visitorTable').style.display = 'table';
+          const isMobile = window.innerWidth <= 768;
+          document.getElementById('visitorTable').style.display = isMobile ? 'none' : 'table';
+          document.getElementById('visitorCards').style.display = isMobile ? 'block' : 'none';
           document.getElementById('emptyState').style.display = 'none';
           renderTable(data.visitors);
         }
@@ -349,33 +398,54 @@
 
     function renderTable(visitors) {
       const tbody = document.getElementById('visitorBody');
-      tbody.innerHTML = visitors.map(v => {
+      const cardsEl = document.getElementById('visitorCards');
+      const rows = visitors.map(v => {
         const photoHtml = v.photo
           ? `<img src="/uploads/${v.photo}" class="photo-cell" alt="">`
           : `<span class="photo-placeholder">${v.fullName.charAt(0).toUpperCase()}</span>`;
         const statusBadge = v.status === 'Active'
           ? '<span class="badge badge-active">Active</span>'
           : '<span class="badge badge-checkout">Checked Out</span>';
-        return `<tr>
-          <td>${photoHtml}</td>
-          <td><strong>${v.visitorId}</strong></td>
-          <td>${escHtml(v.fullName)}</td>
-          <td>${escHtml(v.phone)}</td>
-          <td>${escHtml(v.company)}</td>
-          <td>${escHtml(v.personToMeet)}</td>
-          <td>${v.entryDate}</td>
-          <td>${statusBadge}</td>
-          <td>
-            <div class="actions">
-              ${v.status === 'Active' ? `<button class="btn btn-sm btn-secondary" onclick="checkOutVisitor(${v.id})">Check Out</button>` : `<button class="btn btn-sm btn-primary" onclick="checkInVisitor(${v.id})">Check In</button>`}
+        const checkAction = v.status === 'Active'
+          ? `<button class="btn btn-sm btn-secondary" onclick="checkOutVisitor(${v.id})">Check Out</button>`
+          : `<button class="btn btn-sm btn-primary" onclick="checkInVisitor(${v.id})">Check In</button>`;
+        return {
+          table: `<tr>
+            <td>${photoHtml}</td>
+            <td><strong>${v.visitorId}</strong></td>
+            <td>${escHtml(v.fullName)}</td>
+            <td>${escHtml(v.phone)}</td>
+            <td>${escHtml(v.company)}</td>
+            <td>${escHtml(v.personToMeet)}</td>
+            <td>${v.entryDate}</td>
+            <td>${statusBadge}</td>
+            <td>
+              <div class="actions">
+                ${checkAction}
+                <button class="btn btn-sm btn-outline" onclick="viewVisitor('${v.visitorId}')">View</button>
+                <button class="btn btn-sm btn-outline" onclick="editVisitor(${v.id})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteVisitor(${v.id})">Delete</button>
+                <button class="btn btn-sm btn-outline" onclick="downloadQR('${v.visitorId}')">QR</button>
+              </div>
+            </td>
+          </tr>`,
+          card: `<div class="visitor-card">
+            <div class="vc-photo">${v.photo ? `<img src="/uploads/${v.photo}" alt="">` : `<span>${v.fullName.charAt(0).toUpperCase()}</span>`}</div>
+            <div class="vc-name">${escHtml(v.fullName)}</div>
+            <div class="vc-meta">${v.visitorId} &middot; ${escHtml(v.company)}</div>
+            <div class="vc-status">${statusBadge}</div>
+            <div class="vc-actions">
+              ${checkAction}
               <button class="btn btn-sm btn-outline" onclick="viewVisitor('${v.visitorId}')">View</button>
               <button class="btn btn-sm btn-outline" onclick="editVisitor(${v.id})">Edit</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteVisitor(${v.id})">Delete</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteVisitor(${v.id})">Del</button>
               <button class="btn btn-sm btn-outline" onclick="downloadQR('${v.visitorId}')">QR</button>
             </div>
-          </td>
-        </tr>`;
-      }).join('');
+          </div>`
+        };
+      });
+      tbody.innerHTML = rows.map(r => r.table).join('');
+      cardsEl.innerHTML = rows.map(r => r.card).join('');
     }
 
     function escHtml(str) {
