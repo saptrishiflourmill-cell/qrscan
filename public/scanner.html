@@ -132,26 +132,55 @@
   <script>
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
+    function getToken() {
+      const r = localStorage.getItem('authRemember');
+      if (r === '1') return localStorage.getItem('authToken');
+      return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    }
+
+    function getUser() {
+      const r = localStorage.getItem('authRemember');
+      if (r === '1') return localStorage.getItem('authUser');
+      return localStorage.getItem('authUser') || sessionStorage.getItem('authUser');
+    }
+
+    function clearAuth() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+      localStorage.removeItem('authRemember');
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('authUser');
+    }
+
     async function checkAuth() {
-      const token = localStorage.getItem('authToken');
+      const token = getToken();
       if (!token) { window.location.href = '/login.html?redirect=/scanner.html'; return; }
       try {
         const res = await fetch('/api/auth/check', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
         if (!data.authenticated) {
-          localStorage.removeItem('authToken');
+          clearAuth();
           window.location.href = '/login.html?redirect=/scanner.html'; return;
         }
         document.getElementById('userDisplay').textContent = data.username;
         document.getElementById('userDisplay').style.display = 'inline';
         document.getElementById('logoutBtn').style.display = 'inline-block';
-      } catch (e) { window.location.href = '/login.html?redirect=/scanner.html'; }
+      } catch (e) {
+        const cached = getUser();
+        if (cached) {
+          document.getElementById('userDisplay').textContent = cached;
+          document.getElementById('userDisplay').style.display = 'inline';
+          document.getElementById('logoutBtn').style.display = 'inline-block';
+        } else {
+          window.location.href = '/login.html?redirect=/scanner.html';
+        }
+      }
     }
 
     function logout() {
-      const token = localStorage.getItem('authToken');
+      const token = getToken();
       if (token) fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(() => {});
-      localStorage.removeItem('authToken'); localStorage.removeItem('authUser');
+      clearAuth();
       window.location.href = '/login.html';
     }
 

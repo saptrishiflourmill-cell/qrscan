@@ -34,6 +34,10 @@
           <label>Password</label>
           <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
         </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-light);cursor:pointer;margin:8px 0 4px">
+          <input type="checkbox" id="rememberMe" checked>
+          Remember Me
+        </label>
         <button type="submit" class="btn btn-primary w-full" id="loginBtn" style="padding:12px;font-size:16px;margin-top:8px">Sign In</button>
       </form>
 
@@ -68,8 +72,10 @@
           return;
         }
 
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('authUser', data.username);
+        const storage = document.getElementById('rememberMe').checked ? localStorage : sessionStorage;
+        storage.setItem('authToken', data.token);
+        storage.setItem('authUser', data.username);
+        localStorage.setItem('authRemember', document.getElementById('rememberMe').checked ? '1' : '0');
         const redirect = new URLSearchParams(window.location.search).get('redirect') || '/dashboard.html';
         window.location.href = redirect;
       } catch (err) {
