@@ -167,7 +167,6 @@
       color: #94a3b8;
       pointer-events: none;
       transition: all 0.2s ease;
-      background: #ffffff;
       padding: 0 6px;
       font-weight: 400;
     }
@@ -182,8 +181,6 @@
       transform: none;
       font-size: 11px;
       color: #6366f1;
-      background: #ffffff;
-      border-radius: 4px;
       left: 14px;
     }
 
@@ -288,6 +285,8 @@
     .photo-btn:hover { border-color: #6366f1; background: #eef2ff; color: #6366f1; }
     .photo-btn span { font-size: 18px; }
 
+    .photo-btn.add { border-style:solid;border-color:#6366f1;background:#6366f1;color:#fff; }
+    .photo-btn.add:hover { background:#4f46e5;border-color:#4f46e5; }
     .photo-btn.capture { border-style:solid;border-color:#6366f1;background:#6366f1;color:#fff; }
     .photo-btn.capture:hover { background:#4f46e5;border-color:#4f46e5; }
     .photo-btn.cancel { border-style:solid;border-color:#e2e8f0;background:#fff;color:#64748b; }
@@ -646,7 +645,6 @@
       .reg-header .logo-wrap { width: 60px; height: 60px; border-radius: 18px; }
       .reg-header .logo-wrap span { font-size: 28px; }
       .btn-submit { padding: 15px 20px; font-size: 15px; }
-      .photo-upload-row { flex-direction: column; }
       .photo-btn { min-width: 100%; }
       .form-section-label { font-size: 11px; margin: 12px 0 8px; }
       .input-icon { left: 12px; font-size: 14px; }
@@ -751,12 +749,9 @@
 
         <div class="form-group">
           <label class="photo-label">Photo</label>
-          <div class="photo-upload-row">
-            <button type="button" class="photo-btn camera" onclick="captureCamera()" title="Take Photo">
-              <span>&#128247;</span> Camera
-            </button>
-            <button type="button" class="photo-btn gallery" onclick="document.getElementById('photo').click()" title="Choose from Gallery">
-              <span>&#128206;</span> Gallery
+          <div class="photo-upload-row" id="photoUploadRow">
+            <button type="button" class="photo-btn add" onclick="addPhoto()">
+              <span>&#128247;</span> Add Photo
             </button>
             <input type="file" id="photo" name="photo" accept="image/*" capture="environment" onchange="previewPhoto(event)" style="display:none">
           </div>
@@ -1002,15 +997,15 @@
     }
 
     let cameraStream = null;
-    async function captureCamera() {
+    async function addPhoto() {
       try {
         cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } });
         const video = document.getElementById('cameraFeed');
         video.srcObject = cameraStream;
         document.getElementById('cameraContainer').style.display = 'block';
-        document.querySelector('.photo-upload-row').style.display = 'none';
+        document.getElementById('photoUploadRow').style.display = 'none';
       } catch (err) {
-        showToast('Camera access denied or unavailable', 'error');
+        document.getElementById('photo').click();
       }
     }
 
