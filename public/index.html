@@ -2,131 +2,629 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visitor Registration - VisitManager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Visitor Registration</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "ogl": "https://unpkg.com/ogl@1.0.6/dist/ogl.mjs"
+    }
+  }
+  </script>
   <style>
-    body { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 20px; margin: 0; }
-    .reg-container { max-width: 700px; width: 100%; margin: 20px auto; }
-    .reg-header { text-align: center; margin-bottom: 24px; }
-    .reg-header .logo { width: 64px; height: 64px; background: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; margin: 0 auto 12px; }
-    .reg-header h1 { font-size: 24px; font-weight: 700; color: var(--text); }
-    .reg-header p { color: var(--text-light); font-size: 14px; }
-    @media (max-width: 768px) { body { padding: 12px; } }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #03010A;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    #fluid-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .reg-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      margin: 20px auto;
+    }
+
+    .reg-header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding: 0 8px;
+    }
+
+    .reg-header .logo-wrap {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .reg-header .logo-wrap span {
+      font-size: 36px;
+      color: #fff;
+    }
+
+    .reg-header h1 {
+      font-size: clamp(24px, 5vw, 32px);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+
+    .reg-header p {
+      font-size: clamp(13px, 3vw, 15px);
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    .glass-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 36px);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    .card-title {
+      font-size: clamp(18px, 4vw, 22px);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 24px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .form-group .floating-label {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: rgba(255,255,255,0.4);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      background: transparent;
+      padding: 0 4px;
+      font-weight: 400;
+    }
+
+    .form-group textarea ~ .floating-label {
+      top: 18px;
+      transform: none;
+    }
+
+    .form-group .floating-label.active {
+      top: -8px;
+      transform: none;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(4px);
+      border-radius: 4px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 14px 14px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #fff;
+      outline: none;
+      transition: all 0.25s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+      padding-top: 18px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.05);
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: transparent;
+    }
+
+    .form-group input:focus ~ .floating-label,
+    .form-group textarea:focus ~ .floating-label,
+    .form-group input:not(:placeholder-shown) ~ .floating-label,
+    .form-group textarea:not(:placeholder-shown) ~ .floating-label {
+      top: -8px;
+      transform: none;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(4px);
+      border-radius: 4px;
+    }
+
+    .form-group input[type="date"] ~ .floating-label,
+    .form-group input[type="time"] ~ .floating-label {
+      top: -8px;
+      transform: none;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .form-group input[type="file"] {
+      padding: 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .form-group input[type="file"]::file-selector-button {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background 0.2s;
+    }
+
+    .form-group input[type="file"]::file-selector-button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .photo-preview {
+      max-width: 120px;
+      max-height: 120px;
+      border-radius: 12px;
+      margin-top: 8px;
+      display: none;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .photo-preview.show { display: block; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+      position: relative;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.12) 100%);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(255,255,255,0.08);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-submit .btn-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-reset {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-reset:hover {
+      border-color: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6);
+    }
+
+    .success-card {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .success-icon-wrap {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, rgba(16,185,129,0.3) 0%, rgba(16,185,129,0.1) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+
+    .success-icon-wrap span { font-size: 36px; }
+
+    .success-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .success-card .visitor-id {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      font-family: monospace;
+      margin-bottom: 20px;
+    }
+
+    .qr-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .qr-box img {
+      max-width: 180px;
+      height: auto;
+    }
+
+    .qr-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .qr-actions .btn-action {
+      padding: 10px 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .qr-actions .btn-action:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-1px);
+    }
+
+    .qr-actions .btn-action.primary {
+      background: rgba(59,130,246,0.25);
+      border-color: rgba(59,130,246,0.3);
+    }
+
+    .qr-actions .btn-action.primary:hover {
+      background: rgba(59,130,246,0.35);
+    }
+
+    .qr-actions .btn-action.success {
+      background: rgba(16,185,129,0.25);
+      border-color: rgba(16,185,129,0.3);
+    }
+
+    .qr-actions .btn-action.success:hover {
+      background: rgba(16,185,129,0.35);
+    }
+
+    .qr-actions .btn-action.warning {
+      background: rgba(245,158,11,0.25);
+      border-color: rgba(245,158,11,0.3);
+    }
+
+    .qr-actions .btn-action.warning:hover {
+      background: rgba(245,158,11,0.35);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 14px;
+      z-index: 10000;
+      animation: toastIn 0.3s ease;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .toast.error { background: rgba(239,68,68,0.8); }
+    .toast.success { background: rgba(16,185,129,0.8); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .footer-text {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .reg-wrapper { margin: 10px auto; }
+      .glass-card { padding: 18px; border-radius: 18px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .form-group { margin-bottom: 12px; }
+      .form-group input, .form-group textarea { padding: 13px 13px 11px; font-size: 16px; }
+      .reg-header .logo-wrap { width: 60px; height: 60px; border-radius: 18px; }
+      .reg-header .logo-wrap span { font-size: 28px; }
+      .btn-submit { padding: 15px 20px; font-size: 15px; }
+      .qr-box { padding: 14px; }
+      .qr-box img { max-width: 140px; }
+      .qr-actions .btn-action { font-size: 12px; padding: 8px 12px; min-width: 80px; }
+    }
+
+    @media (max-width: 360px) {
+      .glass-card { padding: 14px; }
+      .form-group input, .form-group textarea { font-size: 15px; }
+    }
   </style>
 </head>
 <body>
-  <div class="reg-container">
+  <div id="fluid-bg"></div>
+
+  <div class="reg-wrapper">
     <div class="reg-header">
-      <div class="logo">&#9662;</div>
+      <div class="logo-wrap"><span>&#9670;</span></div>
       <h1>VisitManager</h1>
-      <p>Visitor Registration System</p>
+      <p>Visitor Registration</p>
     </div>
 
-    <div class="content-card" id="formCard">
-      <div class="card-header">
-        <h2>Visitor Registration Form</h2>
-      </div>
-      <div class="card-body">
-        <form id="visitorForm" enctype="multipart/form-data">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="required">Full Name</label>
-              <input type="text" name="fullName" id="fullName" placeholder="Enter full name" required>
-            </div>
-            <div class="form-group">
-              <label class="required">Phone Number</label>
-              <input type="tel" name="phone" id="phone" placeholder="Enter phone number" required>
-            </div>
-          </div>
+    <div class="glass-card" id="formCard">
+      <div class="card-title">Register Visitor</div>
+      <div class="card-subtitle">Fill in the details to generate a QR pass</div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" name="email" id="email" placeholder="Enter email (optional)">
-            </div>
-            <div class="form-group">
-              <label class="required">Company / Organization</label>
-              <input type="text" name="company" id="company" placeholder="Enter company name" required>
-            </div>
-          </div>
-
+      <form id="visitorForm" enctype="multipart/form-data">
+        <div class="form-row">
           <div class="form-group">
-            <label class="required">Address</label>
-            <textarea name="address" id="address" placeholder="Enter address" required></textarea>
+            <input type="text" id="fullName" name="fullName" placeholder="Full Name" required>
+            <label class="floating-label" for="fullName">Full Name</label>
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="required">Person to Meet</label>
-              <input type="text" name="personToMeet" id="personToMeet" placeholder="Enter person to meet" required>
-            </div>
-            <div class="form-group">
-              <label class="required">Purpose of Visit</label>
-              <input type="text" name="purpose" id="purpose" placeholder="Enter purpose" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="required">Entry Date</label>
-              <input type="date" name="entryDate" id="entryDate" required>
-            </div>
-            <div class="form-group">
-              <label class="required">Entry Time</label>
-              <input type="time" name="entryTime" id="entryTime" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Expected Exit Time</label>
-              <input type="time" name="exitTime" id="exitTime">
-            </div>
-            <div class="form-group">
-              <label>Vehicle Number</label>
-              <input type="text" name="vehicleNumber" id="vehicleNumber" placeholder="Enter vehicle number (optional)">
-            </div>
-          </div>
-
           <div class="form-group">
-            <label>Photo</label>
-            <input type="file" name="photo" id="photo" accept="image/*" onchange="previewPhoto(event)">
-            <img id="photoPreview" class="photo-preview" alt="Preview">
+            <input type="tel" id="phone" name="phone" placeholder="Phone" required>
+            <label class="floating-label" for="phone">Phone Number</label>
           </div>
+        </div>
 
-          <div class="form-actions">
-            <button type="reset" class="btn btn-outline">Reset</button>
-            <button type="submit" class="btn btn-primary" id="submitBtn">Register Visitor</button>
+        <div class="form-row">
+          <div class="form-group">
+            <input type="email" id="email" name="email" placeholder="Email">
+            <label class="floating-label" for="email">Email (optional)</label>
           </div>
-        </form>
-      </div>
+          <div class="form-group">
+            <input type="text" id="company" name="company" placeholder="Company" required>
+            <label class="floating-label" for="company">Company</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <textarea id="address" name="address" placeholder="Address" required></textarea>
+          <label class="floating-label" for="address">Address</label>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <input type="text" id="personToMeet" name="personToMeet" placeholder="Person to Meet" required>
+            <label class="floating-label" for="personToMeet">Person to Meet</label>
+          </div>
+          <div class="form-group">
+            <input type="text" id="purpose" name="purpose" placeholder="Purpose" required>
+            <label class="floating-label" for="purpose">Purpose of Visit</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <input type="date" id="entryDate" name="entryDate" required>
+            <label class="floating-label" for="entryDate">Entry Date</label>
+          </div>
+          <div class="form-group">
+            <input type="time" id="entryTime" name="entryTime" required>
+            <label class="floating-label" for="entryTime">Entry Time</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <input type="time" id="exitTime" name="exitTime">
+            <label class="floating-label" for="exitTime">Exit Time (optional)</label>
+          </div>
+          <div class="form-group">
+            <input type="text" id="vehicleNumber" name="vehicleNumber" placeholder="Vehicle">
+            <label class="floating-label" for="vehicleNumber">Vehicle Number</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <input type="file" id="photo" name="photo" accept="image/*" onchange="previewPhoto(event)">
+          <img id="photoPreview" class="photo-preview" alt="Preview">
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span class="btn-content">
+            <span id="btnText">Register Visitor</span>
+          </span>
+        </button>
+        <button type="reset" class="btn-reset" onclick="resetForm()">Clear All Fields</button>
+      </form>
     </div>
 
-    <div class="content-card" id="successCard" style="display:none">
-      <div class="card-body">
-        <div class="success-message">
-          <div class="success-icon">&#10003;</div>
-          <h2>Visitor Registered Successfully!</h2>
-          <p id="successVisitorId"></p>
-          <div class="qr-display">
-            <img id="qrCodeImg" alt="QR Code">
-            <p style="margin-top:8px;font-size:13px;color:var(--text-light);word-break:break-all" id="qrDataText"></p>
-          </div>
-          <div class="qr-actions" style="flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="downloadQR()">Download QR</button>
-            <button class="btn btn-secondary" onclick="printQR()">Print QR</button>
-            <button class="btn btn-warning" onclick="downloadPass()">Download Pass</button>
-            <button class="btn btn-outline" onclick="registerAnother()">Register Another</button>
-          </div>
+    <div class="glass-card" id="successCard" style="display:none">
+      <div class="success-card">
+        <div class="success-icon-wrap"><span>&#10003;</span></div>
+        <h2>Registered!</h2>
+        <div class="visitor-id" id="successVisitorId"></div>
+
+        <div class="qr-box">
+          <img id="qrCodeImg" alt="QR Code">
+          <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:8px;word-break:break-all" id="qrDataText"></p>
+        </div>
+
+        <div class="qr-actions">
+          <button class="btn-action primary" onclick="downloadQR()">Download QR</button>
+          <button class="btn-action success" onclick="downloadPass()">Get Pass</button>
+        </div>
+        <div class="qr-actions" style="margin-top:6px">
+          <button class="btn-action" onclick="printQR()">Print QR</button>
+          <button class="btn-action" onclick="registerAnother()">New Visitor</button>
         </div>
       </div>
     </div>
 
-    <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-light)">
-      Powered by VisitManager
-    </div>
+    <div class="footer-text">VISITMANAGER &#8226; SECURE VISITOR SYSTEM</div>
   </div>
+
+  <script type="module">
+    import { createFerrofluid } from '/js/ferrofluid.js';
+
+    const container = document.getElementById('fluid-bg');
+    let cleanup = null;
+
+    async function initFluid() {
+      try {
+        cleanup = await createFerrofluid(container, {
+          colors: ['#4F46E5', '#06B6D4', '#0EA5E9', '#6366F1'],
+          speed: 0.5,
+          scale: 1.6,
+          turbulence: 1.2,
+          fluidity: 0.15,
+          rimWidth: 0.25,
+          sharpness: 2.5,
+          shimmer: 1.5,
+          glow: 2.5,
+          flowDirection: 'down',
+          opacity: 0.9,
+          mouseInteraction: true,
+          mouseStrength: 1.2,
+          mouseRadius: 0.35,
+          mouseDampening: 0.15
+        });
+      } catch (e) {
+        console.log('Fluid background unavailable:', e.message);
+      }
+    }
+
+    initFluid();
+
+    window.addEventListener('beforeunload', () => {
+      if (cleanup) cleanup();
+    });
+  </script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -135,11 +633,26 @@
       document.getElementById('entryDate').value = today;
       document.getElementById('entryTime').value = now;
 
+      document.querySelectorAll('input, textarea').forEach(el => {
+        el.addEventListener('blur', function() {
+          if (this.value) this.closest('.form-group')?.querySelector('.floating-label')?.classList.add('active');
+          else this.closest('.form-group')?.querySelector('.floating-label')?.classList.remove('active');
+        });
+        if (el.value) {
+          el.closest('.form-group')?.querySelector('.floating-label')?.classList.add('active');
+        }
+      });
+
       document.getElementById('visitorForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Registering...';
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const content = btn.querySelector('.btn-content');
+        btn.disabled = true;
+        btnText.textContent = 'Registering...';
+        const sp = document.createElement('span');
+        sp.className = 'spinner';
+        content.appendChild(sp);
 
         const formData = new FormData(this);
 
@@ -152,23 +665,24 @@
             if (data.errors) msg = data.errors.map(e => e.msg).join(', ');
             else if (data.error) msg = data.error;
             showToast(msg, 'error');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Register Visitor';
+            btn.disabled = false;
+            btnText.textContent = 'Register Visitor';
+            sp.remove();
             return;
           }
 
           document.getElementById('formCard').style.display = 'none';
           document.getElementById('successCard').style.display = 'block';
-          document.getElementById('successVisitorId').textContent = 'Visitor ID: ' + data.visitor.visitorId;
+          document.getElementById('successVisitorId').textContent = data.visitor.visitorId;
           document.getElementById('qrCodeImg').src = data.qrCodeUrl + '?t=' + Date.now();
           document.getElementById('qrDataText').textContent = data.qrData;
-
           window.lastQRData = data;
           showToast('Visitor registered successfully!', 'success');
         } catch (err) {
           showToast('Error: ' + err.message, 'error');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Register Visitor';
+          btn.disabled = false;
+          btnText.textContent = 'Register Visitor';
+          sp.remove();
         }
       });
     });
@@ -192,6 +706,7 @@
         link.download = window.lastQRData.visitor.visitorId + '-qr.png';
         link.href = document.getElementById('qrCodeImg').src;
         link.click();
+        showToast('QR code downloaded', 'success');
       }
     }
 
@@ -204,7 +719,7 @@
     function printQR() {
       const qrImg = document.getElementById('qrCodeImg').src;
       const win = window.open('', '_blank');
-      win.document.write('<html><head><title>Print QR Code</title><style>body{text-align:center;padding:40px;font-family:sans-serif}img{max-width:300px}</style></head><body>');
+      win.document.write('<html><head><title>Print QR</title><style>body{text-align:center;padding:40px;font-family:Inter,sans-serif;background:#fff}img{max-width:300px}</style></head><body>');
       win.document.write('<h2>Visitor QR Code</h2>');
       win.document.write('<p>' + (window.lastQRData ? window.lastQRData.visitor.visitorId : '') + '</p>');
       win.document.write('<img src="' + qrImg + '" onload="window.print();window.close()">');
@@ -215,17 +730,27 @@
     function registerAnother() {
       document.getElementById('formCard').style.display = 'block';
       document.getElementById('successCard').style.display = 'none';
-      document.getElementById('visitorForm').reset();
+      resetForm();
       document.getElementById('submitBtn').disabled = false;
-      document.getElementById('submitBtn').textContent = 'Register Visitor';
-      document.getElementById('photoPreview').classList.remove('show');
       const today = new Date().toISOString().split('T')[0];
       const now = new Date().toTimeString().split(' ')[0].slice(0, 5);
       document.getElementById('entryDate').value = today;
       document.getElementById('entryTime').value = now;
     }
 
+    function resetForm() {
+      document.getElementById('visitorForm').reset();
+      document.getElementById('photoPreview').classList.remove('show');
+      document.querySelectorAll('.floating-label').forEach(l => l.classList.remove('active'));
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('btnText').textContent = 'Register Visitor';
+      const sp = document.querySelector('#submitBtn .spinner');
+      if (sp) sp.remove();
+    }
+
     function showToast(msg, type) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
       const toast = document.createElement('div');
       toast.className = 'toast ' + type;
       toast.textContent = msg;
