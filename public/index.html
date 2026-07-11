@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Registration - Visitor Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">&#9662;</div>
+        <div>
+          <h2>VisitManager</h2>
+          <p>Visitor Management System</p>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/" class="active"><span class="icon">&#9998;</span> Register Visitor</a>
+        <a href="/dashboard.html"><span class="icon">&#9776;</span> Dashboard</a>
+        <a href="/scanner.html"><span class="icon">&#128247;</span> Scan QR</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <h1>Register Visitor</h1>
+        </div>
+      </div>
+
+      <div class="content-card" id="formCard">
+        <div class="card-header">
+          <h2>Visitor Registration Form</h2>
+        </div>
+        <div class="card-body">
+          <form id="visitorForm" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">Full Name</label>
+                <input type="text" name="fullName" id="fullName" placeholder="Enter full name" required>
+              </div>
+              <div class="form-group">
+                <label class="required">Phone Number</label>
+                <input type="tel" name="phone" id="phone" placeholder="Enter phone number" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" id="email" placeholder="Enter email (optional)">
+              </div>
+              <div class="form-group">
+                <label class="required">Company / Organization</label>
+                <input type="text" name="company" id="company" placeholder="Enter company name" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="required">Address</label>
+              <textarea name="address" id="address" placeholder="Enter address" required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">Person to Meet</label>
+                <input type="text" name="personToMeet" id="personToMeet" placeholder="Enter person to meet" required>
+              </div>
+              <div class="form-group">
+                <label class="required">Purpose of Visit</label>
+                <input type="text" name="purpose" id="purpose" placeholder="Enter purpose" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">Entry Date</label>
+                <input type="date" name="entryDate" id="entryDate" required>
+              </div>
+              <div class="form-group">
+                <label class="required">Entry Time</label>
+                <input type="time" name="entryTime" id="entryTime" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Expected Exit Time</label>
+                <input type="time" name="exitTime" id="exitTime">
+              </div>
+              <div class="form-group">
+                <label>Vehicle Number</label>
+                <input type="text" name="vehicleNumber" id="vehicleNumber" placeholder="Enter vehicle number (optional)">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Photo</label>
+              <input type="file" name="photo" id="photo" accept="image/*" onchange="previewPhoto(event)">
+              <img id="photoPreview" class="photo-preview" alt="Preview">
+            </div>
+
+            <div class="form-actions">
+              <button type="reset" class="btn btn-outline">Reset</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Register Visitor</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="content-card" id="successCard" style="display:none">
+        <div class="card-body">
+          <div class="success-message">
+            <div class="success-icon">&#10003;</div>
+            <h2>Visitor Registered Successfully!</h2>
+            <p id="successVisitorId"></p>
+            <div class="qr-display">
+              <img id="qrCodeImg" alt="QR Code">
+              <p style="margin-top:8px;font-size:13px;color:var(--text-light);word-break:break-all" id="qrDataText"></p>
+            </div>
+            <div class="qr-actions">
+              <button class="btn btn-primary" onclick="downloadQR()">Download QR</button>
+              <button class="btn btn-secondary" onclick="printQR()">Print QR</button>
+              <button class="btn btn-outline" onclick="registerAnother()">Register Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      const now = new Date().toTimeString().split(' ')[0].slice(0, 5);
+      document.getElementById('entryDate').value = today;
+      document.getElementById('entryTime').value = now;
+
+      document.getElementById('visitorForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Registering...';
+
+        const formData = new FormData(this);
+
+        try {
+          const res = await fetch('/api/visitors', { method: 'POST', body: formData });
+          const data = await res.json();
+
+          if (!res.ok) {
+            let msg = 'Registration failed';
+            if (data.errors) {
+              msg = data.errors.map(e => e.msg).join(', ');
+            } else if (data.error) {
+              msg = data.error;
+            }
+            showToast(msg, 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Register Visitor';
+            return;
+          }
+
+          document.getElementById('formCard').style.display = 'none';
+          document.getElementById('successCard').style.display = 'block';
+          document.getElementById('successVisitorId').textContent = 'Visitor ID: ' + data.visitor.visitorId;
+          document.getElementById('qrCodeImg').src = data.qrCodeUrl + '?t=' + Date.now();
+          document.getElementById('qrDataText').textContent = data.qrData;
+
+          window.lastQRData = data;
+          showToast('Visitor registered successfully!', 'success');
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Register Visitor';
+        }
+      });
+    });
+
+    function previewPhoto(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const preview = document.getElementById('photoPreview');
+          preview.src = ev.target.result;
+          preview.classList.add('show');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function downloadQR() {
+      if (window.lastQRData) {
+        const link = document.createElement('a');
+        link.download = window.lastQRData.visitor.visitorId + '-qr.png';
+        link.href = document.getElementById('qrCodeImg').src;
+        link.click();
+      }
+    }
+
+    function printQR() {
+      const qrImg = document.getElementById('qrCodeImg').src;
+      const win = window.open('', '_blank');
+      win.document.write('<html><head><title>Print QR Code</title><style>body{text-align:center;padding:40px;font-family:sans-serif}img{max-width:300px}</style></head><body>');
+      win.document.write('<h2>Visitor QR Code</h2>');
+      win.document.write('<p>' + (window.lastQRData ? window.lastQRData.visitor.visitorId : '') + '</p>');
+      win.document.write('<img src="' + qrImg + '" onload="window.print();window.close()">');
+      win.document.write('</body></html>');
+      win.document.close();
+    }
+
+    function registerAnother() {
+      document.getElementById('formCard').style.display = 'block';
+      document.getElementById('successCard').style.display = 'none';
+      document.getElementById('visitorForm').reset();
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').textContent = 'Register Visitor';
+      document.getElementById('photoPreview').classList.remove('show');
+      const today = new Date().toISOString().split('T')[0];
+      const now = new Date().toTimeString().split(' ')[0].slice(0, 5);
+      document.getElementById('entryDate').value = today;
+      document.getElementById('entryTime').value = now;
+    }
+
+    function showToast(msg, type) {
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+database/visitors.db
+qrcodes/*
+!qrcodes/.gitkeep
+uploads/*
+!uploads/.gitkeep
+server.crt
+server.key
+.env

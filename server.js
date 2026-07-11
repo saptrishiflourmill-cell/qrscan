@@ -1,0 +1,82 @@
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const cors = require('cors');
+const helmet = require('helmet');
+const { initDb } = require('./database/db');
+const visitorRoutes = require('./routes/visitors');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads')));
+app.use('/qrcodes', express.static(path.join(DATA_DIR, 'qrcodes')));
+
+app.use('/api/visitors', visitorRoutes);
+
+app.get('/visitor/:visitorId', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'visitor.html'));
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.use((req, res) => {
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({ error: 'API endpoint not found' });
+  } else {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  }
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+async function start() {
+  try {
+    await initDb();
+    console.log('Database initialized');
+
+    http.createServer(app).listen(PORT, '0.0.0.0', () => {
+      const host = process.env.HOST || 'localhost';
+      console.log(`HTTP:  http://${host}:${PORT}`);
+    });
+
+    const certPath = path.join(__dirname, 'server.crt');
+    const keyPath = path.join(__dirname, 'server.key');
+    if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+      const options = {
+        cert: fs.readFileSync(certPath),
+        key: fs.readFileSync(keyPath)
+      };
+      https.createServer(options, app).listen(HTTPS_PORT, '0.0.0.0', () => {
+        const host = process.env.HOST || '192.168.1.192';
+        console.log(`HTTPS: https://${host}:${HTTPS_PORT}`);
+        console.log('');
+        console.log('Open the HTTPS link on your phone for camera access.');
+        console.log('Your browser will show a warning - tap "Advanced" then "Proceed anyway".');
+      });
+    }
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+start();

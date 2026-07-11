@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Pass - Visitor Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">&#9662;</div>
+        <div>
+          <h2>VisitManager</h2>
+          <p>Visitor Management System</p>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/"><span class="icon">&#9998;</span> Register Visitor</a>
+        <a href="/dashboard.html"><span class="icon">&#9776;</span> Dashboard</a>
+        <a href="/scanner.html"><span class="icon">&#128247;</span> Scan QR</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="top-bar no-print">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <h1>Visitor Pass</h1>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-primary" onclick="window.print()">Print Badge</button>
+          <button class="btn btn-outline" onclick="downloadPassQR()">Download QR</button>
+          <a href="/dashboard.html" class="btn btn-outline">Dashboard</a>
+        </div>
+      </div>
+
+      <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading visitor pass...</p></div>
+      <div id="errorState" class="empty-state" style="display:none">
+        <div class="empty-icon">&#128533;</div>
+        <h3>Visitor Not Found</h3>
+        <p id="errorMsg">The visitor ID does not exist.</p>
+        <div style="margin-top:16px"><a href="/dashboard.html" class="btn btn-primary">Go to Dashboard</a></div>
+      </div>
+
+      <div id="passContent" style="display:none">
+        <div class="pass-container">
+          <div class="pass-card" id="passCard">
+            <div class="pass-header">
+              <div class="company-logo">&#127970;</div>
+              <h2>VisitManager</h2>
+              <p>Visitor Management System</p>
+            </div>
+            <div class="pass-body">
+              <div id="passPhotoContainer"></div>
+              <h3 id="passName"></h3>
+              <div class="pass-id" id="passVisitorId"></div>
+
+              <div class="pass-info">
+                <div class="info-row"><span>Person to Meet</span><span id="passPersonToMeet"></span></div>
+                <div class="info-row"><span>Company</span><span id="passCompany"></span></div>
+                <div class="info-row"><span>Entry Time</span><span id="passEntryTime"></span></div>
+                <div class="info-row"><span>Purpose</span><span id="passPurpose"></span></div>
+                <div class="info-row"><span>Status</span><span id="passStatus"></span></div>
+              </div>
+
+              <div class="pass-qr">
+                <div id="passQRContainer"></div>
+              </div>
+            </div>
+            <div class="pass-footer">
+              Valid for date of visit only | Present this badge at all times
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    let currentVisitor = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      const params = new URLSearchParams(window.location.search);
+      const visitorId = params.get('id');
+
+      if (!visitorId) {
+        showError('No visitor ID provided.');
+        return;
+      }
+
+      await loadVisitor(visitorId);
+    });
+
+    async function loadVisitor(id) {
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('passContent').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/visitors/' + encodeURIComponent(id));
+        if (!res.ok) {
+          showError('Visitor not found: ' + id);
+          return;
+        }
+        const v = await res.json();
+        currentVisitor = v;
+        renderPass(v);
+      } catch (err) {
+        showError('Error: ' + err.message);
+      }
+    }
+
+    function renderPass(v) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('passContent').style.display = 'block';
+
+      if (v.photo) {
+        document.getElementById('passPhotoContainer').innerHTML = '<img src="/uploads/' + v.photo + '?t=' + Date.now() + '" class="pass-photo" alt="">';
+      } else {
+        document.getElementById('passPhotoContainer').innerHTML = '<div class="pass-no-photo">' + v.fullName.charAt(0).toUpperCase() + '</div>';
+      }
+
+      document.getElementById('passName').textContent = v.fullName;
+      document.getElementById('passVisitorId').textContent = v.visitorId;
+      document.getElementById('passPersonToMeet').textContent = v.personToMeet;
+      document.getElementById('passCompany').textContent = v.company;
+      document.getElementById('passEntryTime').textContent = v.entryDate + ' ' + v.entryTime;
+      document.getElementById('passPurpose').textContent = v.purpose;
+      document.getElementById('passStatus').innerHTML = v.status === 'Active'
+        ? '<span class="badge badge-active">Active</span>'
+        : '<span class="badge badge-checkout">Checked Out</span>';
+
+      const qrData = window.location.origin + '/visitor/' + v.visitorId;
+      const qrUrl = '/qrcodes/' + v.visitorId + '.png?t=' + Date.now();
+      document.getElementById('passQRContainer').innerHTML = '<img src="' + qrUrl + '" alt="QR Code" onerror="generateInlineQR(\'' + qrData + '\')">';
+    }
+
+    function generateInlineQR(data) {
+      const container = document.getElementById('passQRContainer');
+      container.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-light)">QR: ' + data + '</div>';
+    }
+
+    function downloadPassQR() {
+      if (currentVisitor) {
+        window.open('/api/visitors/download-qr/' + currentVisitor.visitorId, '_blank');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('passContent').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMsg').textContent = msg;
+    }
+  </script>
+</body>
+</html>

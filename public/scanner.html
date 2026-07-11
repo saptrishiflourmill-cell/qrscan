@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Scanner - Visitor Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">&#9662;</div>
+        <div><h2>VisitManager</h2><p>Visitor Management System</p></div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/"><span class="icon">&#9998;</span> Register Visitor</a>
+        <a href="/dashboard.html"><span class="icon">&#9776;</span> Dashboard</a>
+        <a href="/scanner.html" class="active"><span class="icon">&#128247;</span> Scan QR</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+          <h1>QR Scanner</h1>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <div class="card-body">
+          <div id="initialView">
+            <div style="text-align:center;padding:20px 0">
+              <div style="font-size:64px;margin-bottom:12px">&#128247;</div>
+              <h2 style="margin-bottom:8px">Upload QR Code Image</h2>
+              <p style="color:var(--text-light);margin-bottom:20px;max-width:400px;margin:0 auto 20px">
+                Take a photo of the visitor's QR code and upload it. This works on any browser.
+              </p>
+              <input type="file" id="qrFileInput" accept="image/*" style="display:none" onchange="handleFile(event)">
+              <button class="btn btn-primary" onclick="document.getElementById('qrFileInput').click()" style="padding:12px 32px;font-size:16px">
+                Choose Photo
+              </button>
+            </div>
+
+            <div id="secureCamera" style="display:none;text-align:center;padding:20px 0;border-top:1px solid var(--border);margin-top:20px">
+              <p style="color:var(--text-light);margin-bottom:12px">Or use your camera to scan</p>
+              <button class="btn btn-secondary" onclick="startCamera()">Start Camera</button>
+              <div id="cameraContainer" style="display:none;margin-top:16px">
+                <div id="reader" style="max-width:400px;margin:0 auto;border-radius:var(--radius-lg);overflow:hidden;background:#000"></div>
+                <button class="btn btn-danger mt-2" onclick="stopCamera()">Stop Camera</button>
+              </div>
+            </div>
+
+            <div style="margin-top:24px;padding:16px;background:var(--bg);border-radius:var(--radius)">
+              <label style="font-weight:500;display:block;margin-bottom:8px">Manual Entry:</label>
+              <div style="display:flex;gap:8px">
+                <input type="text" id="manualVisitorId" placeholder="Enter Visitor ID (e.g., VIS-000001)" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px">
+                <button class="btn btn-primary" onclick="lookupVisitor()">Look Up</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="scanningView" style="display:none;text-align:center;padding:40px 0">
+            <div class="spinner" style="margin:0 auto 16px"></div>
+            <h3 id="scanStatusText">Processing...</h3>
+          </div>
+
+          <div id="resultView" style="display:none;text-align:center;padding:20px 0">
+            <div id="resultIcon" style="font-size:48px;margin-bottom:12px"></div>
+            <h3 id="resultTitle"></h3>
+            <p id="resultMsg" style="color:var(--text-light);margin:8px 0 20px"></p>
+            <div class="flex gap-2 justify-center">
+              <button class="btn btn-primary" id="resultActionBtn" style="display:none"></button>
+              <button class="btn btn-outline" onclick="resetView()">Scan Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let html5QrCode = null;
+    let cameraActive = false;
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('secureCamera').style.display = 'block';
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isSecure) {
+        document.querySelector('#secureCamera p').textContent = 'Camera requires HTTPS - use https://192.168.1.192:3443 or Upload Image above';
+      }
+    });
+
+    function handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      showScanning('Scanning QR code from image...');
+      scanFile(file);
+      event.target.value = '';
+    }
+
+    async function scanFile(file) {
+      try {
+        const codeScanner = new Html5Qrcode("reader");
+        const decodedText = await codeScanner.scanFile(file, false);
+        codeScanner.clear();
+        processResult(decodedText);
+      } catch (err) {
+        showError('Could not read QR code from this image. Try:<br>1. Take a clearer photo<br>2. Make sure the QR code is well-lit and in focus<br>3. Use Manual Entry below');
+      }
+    }
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        stream.getTracks().forEach(t => t.stop());
+
+        document.querySelector('#secureCamera .btn-secondary').style.display = 'none';
+        document.getElementById('cameraContainer').style.display = 'block';
+
+        html5QrCode = new Html5Qrcode("reader");
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          function(decodedText) {
+            stopCamera();
+            processResult(decodedText);
+          },
+          function() {}
+        );
+        cameraActive = true;
+      } catch (err) {
+        showError('Camera access denied or not available. Use Upload Image instead.');
+        document.querySelector('#secureCamera .btn-secondary').style.display = 'inline-block';
+        document.getElementById('cameraContainer').style.display = 'none';
+      }
+    }
+
+    function stopCamera() {
+      if (html5QrCode && cameraActive) {
+        html5QrCode.stop().then(() => { cameraActive = false; }).catch(() => {});
+      }
+      document.querySelector('#secureCamera .btn-secondary').style.display = 'inline-block';
+      document.getElementById('cameraContainer').style.display = 'none';
+    }
+
+    function processResult(decodedText) {
+      let visitorId = null;
+      if (decodedText.includes('/visitor/')) {
+        const parts = decodedText.split('/visitor/');
+        visitorId = parts[parts.length - 1].split('?')[0].split('#')[0];
+      } else if (/^VIS-\d{6}$/.test(decodedText.trim())) {
+        visitorId = decodedText.trim();
+      }
+
+      if (visitorId && /^VIS-\d{6}$/.test(visitorId)) {
+        showResult('success', '&#10003;', 'Visitor Found!', 'Visitor ID: ' + visitorId, 'View Details', function() {
+          window.location.href = '/visitor.html?id=' + visitorId;
+        });
+      } else {
+        showError('Invalid QR code. This is not a valid visitor QR code.<br>Use Manual Entry below.');
+      }
+    }
+
+    function lookupVisitor() {
+      const id = document.getElementById('manualVisitorId').value.trim().toUpperCase();
+      if (!id) return showError('Please enter a Visitor ID');
+      if (!/^VIS-\d{6}$/.test(id)) return showError('Invalid format. Use VIS-000001');
+      window.location.href = '/visitor.html?id=' + id;
+    }
+
+    function showScanning(msg) {
+      document.getElementById('initialView').style.display = 'none';
+      document.getElementById('resultView').style.display = 'none';
+      document.getElementById('scanningView').style.display = 'block';
+      document.getElementById('scanStatusText').textContent = msg;
+    }
+
+    function showResult(type, icon, title, msg, btnText, btnAction) {
+      document.getElementById('scanningView').style.display = 'none';
+      document.getElementById('resultView').style.display = 'block';
+      document.getElementById('resultIcon').innerHTML = icon;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('resultMsg').innerHTML = msg;
+      const btn = document.getElementById('resultActionBtn');
+      btn.textContent = btnText;
+      btn.style.display = 'inline-block';
+      btn.onclick = btnAction;
+    }
+
+    function showError(msg) {
+      document.getElementById('scanningView').style.display = 'none';
+      document.getElementById('resultView').style.display = 'block';
+      document.getElementById('resultIcon').innerHTML = '&#10060;';
+      document.getElementById('resultIcon').style.color = 'var(--danger)';
+      document.getElementById('resultTitle').textContent = 'Scan Failed';
+      document.getElementById('resultMsg').innerHTML = msg;
+      document.getElementById('resultActionBtn').style.display = 'none';
+    }
+
+    function resetView() {
+      document.getElementById('initialView').style.display = 'block';
+      document.getElementById('scanningView').style.display = 'none';
+      document.getElementById('resultView').style.display = 'none';
+    }
+
+    document.getElementById('manualVisitorId').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') lookupVisitor();
+    });
+  </script>
+</body>
+</html>
